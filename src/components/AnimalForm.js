@@ -1,8 +1,16 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { withFormik, Form, Field } from 'formik'
 import * as yup from 'yup'
+import axios from 'axios'
 
-const AnimalForm = ({ errors, touched }) => {
+const AnimalForm = ({ errors, touched, status }) => {
+  const [animals, setAnimals] = useState([])
+
+  useEffect(() => {
+    if (status){
+    setAnimals([...animals, status])}
+  }, [status])
+
   return (
     <Form >
       { touched.species && errors.species && <p className="error">{errors.species}</p> }
@@ -28,6 +36,12 @@ const AnimalForm = ({ errors, touched }) => {
       <Field component="textarea" name="notes" placeholder="Notes" />
 
       <button type="submit">Submit</button>
+
+
+      {animals.map(animal => (
+        <div> Species: {animal.species} </div>
+        ))}
+
     </Form>
   )
 }
@@ -48,7 +62,11 @@ export default withFormik({
     diet: yup.string().required('Diet is required'),
     vaccinations: yup.boolean().required()
   }),
-  handleSubmit: (values) => {
-    console.log(values)
+  handleSubmit: (values, { setStatus }) => {
+    axios.post('https://reqres.in/api/animals', values)
+      .then((resp) => {
+        setStatus(resp.data)
+      })
+      .catch(err => console.log(err))
   }
 })(AnimalForm)
